@@ -6,15 +6,8 @@ import string
 from nltk.corpus import stopwords
 from nltk.stem.snowball import EnglishStemmer
 
-# def get_implemented_readers():
-#     """
-#     Add all the implemented datasets here
-#     :return:
-#     """
-#     datasets = dict(
-#         "smsspam"=SmsSpam.path
-#     )
-#     return datasets
+
+implemented_readers = ("smsspam")
 
 
 class Dataloader(ABC):
@@ -23,13 +16,25 @@ class Dataloader(ABC):
     def __len__(self):
         pass
 
+    @abstractmethod
+    def get_data(self):
+        pass
+
+    @abstractmethod
+    def get_train(self):
+        pass
+
+    @abstractmethod
+    def get_test(self):
+        pass
+
 
 class SmsSpam(Dataloader):
     """
     SMS Spam Collection v. 1, https://www.dt.fee.unicamp.br/~tiago/smsspamcollection/
     """
 
-    def __init__(self, path: str, filter: bool, split: List[float] = (0.7, 0.2, 0.1)):
+    def __init__(self, path: str, filter: bool, split: float = 0.8):
         assert exists(path), f"Dataset file {path} does not exist"
         self.path = path
         self.filter = filter
@@ -54,7 +59,7 @@ class SmsSpam(Dataloader):
         self.data = pd.read_csv(self.path, encoding="latin-1")
         self.data.dropna(how="any", inplace=True, axis=1)  # dataset file contains 3 empty columns
         self.data.columns = ["label", "message"]
-        self.data["message_len"] = self.data.message.apply(len)  # can be used as a feature
+        # self.data["message_len"] = self.data.message.apply(len)  # can be used as a feature
         self.data["label_num"] = self.data.label.map({"ham": 0, "spam": 1})  # a numerical class value is required
 
     @staticmethod
@@ -81,29 +86,28 @@ class SmsSpam(Dataloader):
         # Get all spam and ham messages
         ham = self.data[self.data.label_num == 0]
         spam = self.data[self.data.label_num == 1]
-        ham_thresh = (int(len(ham) * self.split[0]), int(len(ham) * (self.split[0] + self.split[1])))
-        spam_thresh = (int(len(spam) * self.split[0]), int(len(spam) * (self.split[0] + self.split[1])))
-        self.train = pd.concat((ham[0:ham_thresh[0]], spam[0:spam_thresh[0]]), ignore_index=True)
-        self.val = pd.concat((ham[ham_thresh[0]:ham_thresh[1]], spam[spam_thresh[0]:spam_thresh[1]]), ignore_index=True)
-        self.test = pd.concat((ham[ham_thresh[1]:], spam[spam_thresh[1]:]), ignore_index=True)
+        ham_thresh = int(len(ham) * self.split)
+        spam_thresh = int(len(spam) * self.split)
+
+        self.train = pd.concat((ham[:ham_thresh], spam[:spam_thresh]), ignore_index=True)
+        self.test = pd.concat((ham[ham_thresh:], spam[spam_thresh:]), ignore_index=True)
 
         # Shuffle the rows
         self.train = self.train.sample(frac=1).reset_index(drop=True)
 
-    def get_train(self):
-        return self.train
+    def get_data(self):
+        return self.data.clean_msg, self.data.label_num
 
-    def get_val(self):
-        return self.val
+    def get_train(self):
+        return self.train.clean_msg, self.train.label_num
 
     def get_test(self):
-        return self.test
+        return self.test.clean_msg, self.test.label_num
 
 
 if __name__ == "__main__":
-    dl = SmsSpam("tests/spam_test.csv", filter=True, split=[0.7, 0.2, 0.1])
+    dl = SmsSpam("tests/spam_test.csv", filter=True, split=0.8)
     print(dl.get_train())
-    print(dl.get_val())
     print(dl.get_test())
 
 
