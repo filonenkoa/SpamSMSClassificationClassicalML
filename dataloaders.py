@@ -1,7 +1,6 @@
 from os.path import exists
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import List
 import string
 from nltk.corpus import stopwords
 from nltk.stem.snowball import EnglishStemmer

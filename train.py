@@ -10,6 +10,7 @@ from datetime import datetime
 from dataloaders import implemented_readers, get_dataloader
 from solvers import implemented_solvers, get_solver
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Analyze the dataset.')
     parser.add_argument('--dataset', metavar='S', type=str,
@@ -33,7 +34,7 @@ def parse_args():
 
 
 def config_logger(logdir):
-    handlers = []
+    handlers = list()
     handlers.append(logging.StreamHandler())
     if logdir is not None:
         file_name = f"{datetime.now().strftime('%Y_%m_%d-%H_%M_%S')}.log"
