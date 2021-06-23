@@ -1,4 +1,4 @@
-# SpamSMSClassification
+# Spam SMS Classification, Classical ML
 Classification on SMS Spam Collection Dataset using classical
 machine learning approaches
 
@@ -8,13 +8,8 @@ machine learning approaches
 Download the archive by the [LINK](https://www.dt.fee.unicamp.br/~tiago/smsspamcollection/smsspamcollection.zip), extract its contents, and
 provide the destination to the train.py via the ```--dataset``` key
 
-### Dataset analysis
-To run the analysis, use:
-
-```python analyze_dataset.py --dataset <DATASET_PATH>```
-
 ## Approaches
-- [ ] Logistic regression 
+- [X] Logistic regression 
 
 ### Logistic regression
 The baseline solution is the logistic regression one which is fast
@@ -22,7 +17,17 @@ to train.
 
 To run the training, use the following command:
 
-```python train.py --classifier logistic --dataset <DATASET_PATH>  --log <LOG_DIR>```
+```python train.py --solver=logistic_regression --dataset=<DATASET_PATH>  --log=<LOG_DIR> --split=0.8```
+
+#### Expected results
+- Accuracy: 0.978
+- Confusion matrix
+
+|      	| Ham 	| Spam 	|
+|------	|-----	|------	|
+| Ham  	| 963 	| 2    	|
+| Spam 	| 22  	| 128  	|
+-  ROC AUC score 0.990
 
 ## Troubleshooting
 ### Stopwords

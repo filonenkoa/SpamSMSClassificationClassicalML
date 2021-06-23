@@ -10,7 +10,12 @@ from nltk.stem.snowball import EnglishStemmer
 implemented_readers = ("smsspam")
 
 
-class Dataloader(ABC):
+class Dataloader:
+
+    def __init__(self, path: str, split: float):
+        assert exists(path), f"Dataset file {path} does not exist"
+        self.path = path
+        self.split = split
 
     @abstractmethod
     def __len__(self):
@@ -34,12 +39,8 @@ class SmsSpam(Dataloader):
     SMS Spam Collection v. 1, https://www.dt.fee.unicamp.br/~tiago/smsspamcollection/
     """
 
-    def __init__(self, path: str, filter: bool, split: float = 0.8):
-        assert exists(path), f"Dataset file {path} does not exist"
-        self.path = path
-        self.filter = filter
-        self.split = split
-
+    def __init__(self, path: str, split: float = 0.8):
+        super().__init__(path, split)
         self.data = None
         self.train = None
         self.val = None
@@ -51,8 +52,7 @@ class SmsSpam(Dataloader):
 
     def prepare_data(self):
         self.read_data()
-        if filter:
-            self.data['clean_msg'] = self.data.message.apply(self.filter_messages)
+        self.data['clean_msg'] = self.data.message.apply(self.filter_messages)
         self.split_data()
 
     def read_data(self):
@@ -105,8 +105,15 @@ class SmsSpam(Dataloader):
         return self.test.clean_msg, self.test.label_num
 
 
+def get_dataloader(name: str) -> Dataloader:
+    if name.lower() == "smsspam":
+        return SmsSpam
+    else:
+        raise Exception(f"Data loader {name} is not implemented")
+
+
 if __name__ == "__main__":
-    dl = SmsSpam("tests/spam_test.csv", filter=True, split=0.8)
+    dl = SmsSpam("tests/spam_test.csv", split=0.8)
     print(dl.get_train())
     print(dl.get_test())
 
